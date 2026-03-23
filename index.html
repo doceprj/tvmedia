@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Easton Park - Single Line Loop</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+
+    .screen-wrapper { position: relative; width: 100vw; height: 100vh; }
+
+    #video-slot {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: fill; z-index: 1;
+    }
+
+    /* CONTAINER KONTROL BAWAH */
+    .bottom-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      gap: 12px;
+      z-index: 10;
+      align-items: center;
+    }
+
+    /* TICKER FRAME ROUNDED & TRANSAPARENT */
+    .overlay-ticker {
+      flex: 1;
+      height: 38px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden; 
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    /* LOGIKA SINGLE LINE LOOP */
+    .ticker-text {
+      position: absolute;
+      white-space: nowrap;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      /* Animasi: Muncul dari kanan luar ke kiri luar */
+      animation: loop-single-line 15s linear infinite;
+    }
+
+    @keyframes loop-single-line {
+      0% { transform: translateX(100vw); } /* Mulai dari kanan layar */
+      100% { transform: translateX(-100%); } /* Berakhir setelah teks habis di kiri */
+    }
+
+    /* JAM DIGITAL CLEAN */
+    .digital-clock {
+      min-width: 100px;
+      height: 38px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: monospace;
+      font-size: 16px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body onclick="startDisplay()">
+
+  <div class="screen-wrapper">
+    <video id="video-slot" muted playsinline loop></video>
+
+    <div class="bottom-controls">
+      <div class="overlay-ticker">
+        <div class="ticker-text">
+          EASTON PARK RESIDENCE JATINANGOR
+        </div>
+      </div>
+
+      <div id="clock" class="digital-clock">00:00:00</div>
+    </div>
+  </div>
+
+<script>
+  const VIDEO_URL = "https://github.com/kimiimagestudio-dev/tv-media/raw/refs/heads/main/redpandacompress_TESTING%20TV%20MEDIA%20(4).mp4";
+  const v = document.getElementById('video-slot');
+
+  function startDisplay() {
+    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    v.src = VIDEO_URL + "?v=" + new Date().getTime();
+    v.play();
+    document.body.onclick = null;
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Auto-refresh logic (3 detik sekali cek update file)
+  let lastUpdate = "";
+  setInterval(() => {
+    fetch(window.location.href, { method: 'HEAD', cache: 'no-cache' }).then(res => {
+      let etag = res.headers.get("ETag") || res.headers.get("Last-Modified");
+      if (lastUpdate && etag !== lastUpdate) location.reload(true);
+      lastUpdate = etag;
+    }).catch(() => {});
+  }, 3000);
+
+  window.onload = () => { 
+    v.src = VIDEO_URL; 
+    v.play().catch(()=>{}); 
+  };
+</script>
+</body>
+</html>
