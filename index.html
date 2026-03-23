@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Easton Park - Color Balanced</title>
+  <title>Easton Park - Clean & Stable</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { background: #000; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; }
 
     #video-slot {
       position: fixed; top: 0; left: 0;
@@ -14,58 +14,47 @@
       object-fit: cover; z-index: -1;
     }
 
+    /* Container Bar - Lebih Ramping */
     .footer-bar {
-      position: fixed; 
-      bottom: 4vh; 
-      left: 3vw; 
-      right: 3vw;
-      height: 7.5vh; 
-      display: flex; 
-      gap: 1.5vw;
+      position: fixed; bottom: 20px; left: 20px; right: 20px;
+      height: 40px; display: flex; gap: 12px;
     }
 
-    /* BOX TEKS: Pakai Abu Gelap Pekat (Bukan Hitam Total) */
-    /* Ini supaya di TV tidak "tenggelam" kalau layarnya tipe VA */
+    /* Ticker Box - Warna Abu Gelap Solid (Clean) */
     .ticker-box {
-      flex: 1; 
-      overflow: hidden; 
-      display: flex; 
-      align-items: center;
-      background: #1c1c1c; 
-      border-radius: 50px; 
-      border: 2px solid #444; /* Border netral */
+      flex: 1; overflow: hidden; display: flex; align-items: center;
+      background: #1a1a1a; 
+      border-radius: 30px; 
+      border: 1px solid #505050;
     }
 
     .ticker-content {
       white-space: nowrap; 
-      color: #FFFFFF; /* Putih bersih, paling aman di TV */
-      font-weight: 700; 
-      font-size: 3.5vh; 
-      letter-spacing: 0.5px;
+      color: #ffffff; 
+      font-weight: 600; 
+      font-size: 16px;
+      letter-spacing: 1px;
       will-change: transform;
-      animation: move-text 35s linear infinite; 
+      /* Dibuat lebih pelan (30 detik) agar ringan & halus */
+      animation: move-text 30s linear infinite;
     }
 
     @keyframes move-text {
       0% { transform: translateX(100vw); }
-      100% { transform: translateX(-120%); }
+      100% { transform: translateX(-100%); }
     }
 
-    /* BOX JAM: Pakai warna Hijau Mint yang lebih 'Deep' */
-    /* Warna ini biasanya terlihat sama di hampir semua jenis layar TV */
+    /* Jam Box - Warna Hijau Soft (Clean) */
     .clock-box {
-      background: #00f2ad; /* Hijau Mint Standar Digital Signage */
-      color: #002e21; /* Font hijau sangat gelap agar kontras tajam */
-      padding: 0 4vw;
-      display: flex; 
-      align-items: center; 
+      background: #e0f7fa; /* Hijau pucat bersih */
+      color: #006064; /* Font kontras gelap */
+      padding: 0 20px;
+      display: flex; align-items: center; 
       font-family: 'Courier New', monospace;
-      font-weight: 900; 
-      font-size: 4vh; 
-      border-radius: 50px;
-      min-width: 18vw; 
-      justify-content: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* Shadow agar jam "keluar" dari background video */
+      font-weight: 800; font-size: 18px; 
+      border-radius: 30px;
+      min-width: 120px; justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
   </style>
 </head>
@@ -102,21 +91,27 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  // REFRESH OTOMATIS (Bypass Cache)
+  // --- LOGIKA AUTO REFRESH ANTI-CACHE ---
   let lastUpdate = "";
   setInterval(() => {
-    fetch(window.location.href + "?check=" + Date.now(), { 
+    // Menambahkan query string ?t=[random] agar server memberikan data paling baru (Bypass Cache)
+    fetch(window.location.href + "?t=" + new Date().getTime(), { 
       method: 'HEAD', 
       cache: 'no-store' 
     })
     .then(res => {
-      const current = res.headers.get("ETag") || res.headers.get("Last-Modified");
+      const etag = res.headers.get("ETag");
+      const lastMod = res.headers.get("Last-Modified");
+      const current = etag || lastMod;
+
       if (lastUpdate && current && current !== lastUpdate) {
+        console.log("Kodingan baru terdeteksi! Refreshing...");
         window.location.reload(true);
       }
       lastUpdate = current;
-    }).catch(() => {});
-  }, 10000);
+    })
+    .catch(e => console.log("Cek update tertunda..."));
+  }, 10000); // Cek setiap 10 detik
 
   window.onload = () => { 
     v.src = VIDEO_URL; 
