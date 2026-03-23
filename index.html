@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Easton Park - Unified Auto Refresh</title>
+  <title>Easton Park - Force Refresh</title>
   <style>
-    /* Reset & Base */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
 
@@ -15,29 +14,19 @@
       object-fit: cover; z-index: -1;
     }
 
-    /* Layout Responsive menggunakan VH/VW agar sama di TV/HP/Laptop */
+    /* Container Bar Responsive (vh/vw) */
     .footer-bar {
-      position: fixed; 
-      bottom: 4vh; 
-      left: 3vw; 
-      right: 3vw;
-      height: 7.5vh; 
-      display: flex; 
-      gap: 1.5vw;
+      position: fixed; bottom: 4vh; left: 3vw; right: 3vw;
+      height: 7.5vh; display: flex; gap: 1.5vw;
     }
 
     .ticker-box {
       flex: 1; overflow: hidden; display: flex; align-items: center;
-      background: #1a1a1a; 
-      border-radius: 50px; 
-      border: 0.3vh solid #e0f7fa;
+      background: #1a1a1a; border-radius: 50px; border: 0.3vh solid #e0f7fa;
     }
 
     .ticker-content {
-      white-space: nowrap; 
-      color: #ffffff; 
-      font-weight: 700; 
-      font-size: 3.5vh; 
+      white-space: nowrap; color: #ffffff; font-weight: 700; font-size: 3.5vh; 
       will-change: transform;
       animation: move-text 35s linear infinite;
     }
@@ -48,16 +37,10 @@
     }
 
     .clock-box {
-      background: #e0f7fa; 
-      color: #006064; 
-      padding: 0 4vw;
-      display: flex; align-items: center; 
-      font-family: monospace;
-      font-weight: 900; 
-      font-size: 4vh; 
-      border-radius: 50px;
-      min-width: 150px; 
-      justify-content: center;
+      background: #e0f7fa; color: #006064; padding: 0 4vw;
+      display: flex; align-items: center; font-family: monospace;
+      font-weight: 900; font-size: 4vh; border-radius: 50px;
+      min-width: 160px; justify-content: center;
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
   </style>
@@ -69,7 +52,7 @@
   <div class="footer-bar">
     <div class="ticker-box">
       <div class="ticker-content">
-        EASTON PARK RESIDENCE JATINANGOR — MODERN LIVING — UNIT READY STOCK!
+        EASTON PARK RESIDENCE JATINANGOR
       </div>
     </div>
     <div id="clock" class="clock-box">00:00:00</div>
@@ -77,14 +60,16 @@
 
 <script>
   const v = document.getElementById('video-slot');
-  const VIDEO_URL = "https://github.com/doceprj/tvmedia/raw/refs/heads/main/tvmediaa.mp4";
+  const VIDEO_URL = "https://github.com/doceprj/tvmedia/raw/refs/heads/main/media.mp4";
 
+  // 1. Fungsi Putar Video
   function playVideo() {
     if (!v.src) v.src = VIDEO_URL;
-    v.play().catch(e => console.log("Video Play Error:", e));
+    v.play().catch(() => {});
     if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
   }
 
+  // 2. Update Jam (1 Detik Sekali)
   function updateClock() {
     const d = new Date();
     document.getElementById('clock').textContent = d.toLocaleTimeString('id-ID', { hour12: false });
@@ -92,41 +77,21 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  // --- LOGIKA AUTO REFRESH 30 DETIK (SUPPORT ALL DEVICES) ---
-  let lastIdentifer = "";
-  
-  function checkUpdate() {
-    // Menambahkan cache buster yang unik setiap kali fetch
-    const fetchUrl = window.location.origin + window.location.pathname + "?cb=" + Date.now();
-    
-    fetch(fetchUrl, { 
-      method: 'HEAD', 
-      mode: 'cors',
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-    })
-    .then(res => {
-      // Mengambil identitas unik file (ETag atau Last-Modified)
-      const current = res.headers.get("ETag") || res.headers.get("Last-Modified");
-      
-      if (lastIdentifer && current && current !== lastIdentifer) {
-        console.log("Update terdeteksi! Memuat ulang...");
-        // Menggunakan replace agar tidak merusak history browser TV
-        window.location.replace(window.location.href);
-      }
-      lastIdentifer = current;
-    })
-    .catch(err => console.log("Gagal mengecek update (Offline/CORS):", err));
-  }
+  // 3. LOGIKA PAKSA REFRESH (30 Detik Sekali)
+  // Ini akan memaksa browser memuat ulang halaman dengan URL unik
+  setTimeout(() => {
+    const currentUrl = window.location.href.split('?')[0];
+    const forceUrl = currentUrl + "?refresh=" + Date.now();
+    console.log("Forcing refresh to bypass TV cache...");
+    window.location.replace(forceUrl);
+  }, 30000); // 30.000 ms = 30 detik
 
-  // Cek setiap 30 detik
-  setInterval(checkUpdate, 30000);
-
+  // 4. Load Awal
   window.onload = () => { 
     v.src = VIDEO_URL; 
-    v.play().catch(() => {});
-    // Jalankan cek pertama setelah loading selesai
-    setTimeout(checkUpdate, 2000);
+    v.play().catch(() => {
+      console.log("Menunggu interaksi user untuk play video");
+    });
   };
 </script>
 </body>
