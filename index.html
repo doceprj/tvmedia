@@ -2,135 +2,105 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Easton Park - Single Line Loop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easton Park - Lite</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+    body { background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
 
-    .screen-wrapper { position: relative; width: 100vw; height: 100vh; }
-
+    /* Video tetap full screen */
     #video-slot {
-      position: absolute;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100%; height: 100%;
-      object-fit: fill; z-index: 1;
+      object-fit: cover; z-index: -1;
     }
 
-    /* CONTAINER KONTROL BAWAH */
-    .bottom-controls {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      display: flex;
-      gap: 12px;
-      z-index: 10;
-      align-items: center;
+    /* Container bawah */
+    .footer {
+      position: fixed; bottom: 20px; left: 20px; right: 20px;
+      display: flex; gap: 10px; align-items: center;
     }
 
-    /* TICKER FRAME ROUNDED & TRANSAPARENT */
-    .overlay-ticker {
-      flex: 1;
-      height: 38px;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: 50px;
+    /* Ticker Ringan */
+    .ticker-box {
+      flex: 1; height: 40px;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      overflow: hidden; 
-      display: flex;
-      align-items: center;
-      position: relative;
+      overflow: hidden;
+      display: flex; align-items: center;
     }
 
-    /* LOGIKA SINGLE LINE LOOP */
-    .ticker-text {
-      position: absolute;
+    .ticker-content {
       white-space: nowrap;
-      font-size: 16px;
-      font-weight: 700;
       color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      /* Animasi: Muncul dari kanan luar ke kiri luar */
-      animation: loop-single-line 20s linear infinite;
+      font-weight: bold;
+      font-size: 1.1rem;
+      /* Animasi linear yang lebih ringan */
+      animation: move-text 15s linear infinite;
+      padding-left: 100%;
     }
 
-    @keyframes loop-single-line {
-      0% { transform: translateX(100vw); } /* Mulai dari kanan layar */
-      100% { transform: translateX(-100%); } /* Berakhir setelah teks habis di kiri */
+    @keyframes move-text {
+      from { transform: translateX(0); }
+      to { transform: translateX(-150%); } /* Sesuaikan agar teks benar-benar hilang */
     }
 
-    /* JAM DIGITAL CLEAN */
-    .digital-clock {
-      min-width: 100px;
-      height: 38px;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(10px);
-      border-radius: 50px;
+    /* Jam */
+    .clock {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      padding: 0 20px; height: 40px;
+      border-radius: 20px;
+      color: #fff; font-family: monospace;
+      display: flex; align-items: center;
+      font-weight: bold; font-size: 1.1rem;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: monospace;
-      font-size: 16px;
-      font-weight: 700;
     }
   </style>
 </head>
-<body onclick="startDisplay()">
+<body onclick="playVideo()">
 
-  <div class="screen-wrapper">
-    <video id="video-slot" muted playsinline loop></video>
+  <video id="video-slot" muted playsinline loop></video>
 
-    <div class="bottom-controls">
-      <div class="overlay-ticker">
-        <div class="ticker-text">
-          EASTON PARK RESIDENCE JATINANGOR
-        </div>
+  <div class="footer">
+    <div class="ticker-box">
+      <div class="ticker-content">
+        SELAMAT DATANG DI EASTON PARK RESIDENCE JATINANGOR - KENYAMANAN HUNIAN APARTEMEN TERBAIK
       </div>
-
-      <div id="clock" class="digital-clock">00:00:00</div>
     </div>
+    <div id="clock" class="clock">00:00:00</div>
   </div>
 
 <script>
-  const VIDEO_URL = "https://github.com/doceprj/tvmedia/raw/refs/heads/main/tvmediaa.mp4";
   const v = document.getElementById('video-slot');
+  v.src = "https://github.com/doceprj/tvmedia/raw/refs/heads/main/tvmediaa.mp4";
 
-  function startDisplay() {
-    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-    v.src = VIDEO_URL + "?v=" + new Date().getTime();
+  function playVideo() {
     v.play();
-    document.body.onclick = null;
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+    }
   }
 
+  // Update Jam 1 detik sekali
   function updateClock() {
     const now = new Date();
-    const h = String(now.getHours()).padStart(2, '0');
-    const m = String(now.getMinutes()).padStart(2, '0');
-    const s = String(now.getSeconds()).padStart(2, '0');
-    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+    document.getElementById('clock').textContent = now.toLocaleTimeString('id-ID', { hour12: false });
   }
   setInterval(updateClock, 1000);
   updateClock();
 
-  // Auto-refresh logic (3 detik sekali cek update file)
-  let lastUpdate = "";
+  // Auto Refresh jika ada perubahan file (Interval dinaikkan ke 10 detik agar hemat resource)
+  let lastModified = "";
   setInterval(() => {
-    fetch(window.location.href, { method: 'HEAD', cache: 'no-cache' }).then(res => {
-      let etag = res.headers.get("ETag") || res.headers.get("Last-Modified");
-      if (lastUpdate && etag !== lastUpdate) location.reload(true);
-      lastUpdate = etag;
-    }).catch(() => {});
-  }, 3000);
-
-  window.onload = () => { 
-    v.src = VIDEO_URL; 
-    v.play().catch(()=>{}); 
-  };
+    fetch(window.location.href, { method: 'HEAD' }).then(res => {
+      let current = res.headers.get("Last-Modified");
+      if (lastModified && current !== lastModified) location.reload();
+      lastModified = current;
+    }).catch(e => console.log("Check failed"));
+  }, 10000);
 </script>
 </body>
 </html>
