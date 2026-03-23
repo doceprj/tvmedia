@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Easton Park - Clean & Stable</title>
+  <title>Easton Park - Unified Auto Refresh</title>
   <style>
+    /* Reset & Base */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; }
+    body { background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
 
     #video-slot {
       position: fixed; top: 0; left: 0;
@@ -14,47 +15,50 @@
       object-fit: cover; z-index: -1;
     }
 
-    /* Container Bar - Lebih Ramping */
+    /* Layout Responsive menggunakan VH/VW agar sama di TV/HP/Laptop */
     .footer-bar {
-      position: fixed; bottom: 20px; left: 20px; right: 20px;
-      height: 40px; display: flex; gap: 12px;
+      position: fixed; 
+      bottom: 4vh; 
+      left: 3vw; 
+      right: 3vw;
+      height: 7.5vh; 
+      display: flex; 
+      gap: 1.5vw;
     }
 
-    /* Ticker Box - Warna Abu Gelap Solid (Clean) */
     .ticker-box {
       flex: 1; overflow: hidden; display: flex; align-items: center;
       background: #1a1a1a; 
-      border-radius: 30px; 
-      border: 1px solid #e0f7fa;
+      border-radius: 50px; 
+      border: 0.3vh solid #e0f7fa;
     }
 
     .ticker-content {
       white-space: nowrap; 
       color: #ffffff; 
-      font-weight: 600; 
-      font-size: 16px;
-      letter-spacing: 1px;
+      font-weight: 700; 
+      font-size: 3.5vh; 
       will-change: transform;
-      /* Dibuat lebih pelan (30 detik) agar ringan & halus */
-      animation: move-text 30s linear infinite;
+      animation: move-text 35s linear infinite;
     }
 
     @keyframes move-text {
       0% { transform: translateX(100vw); }
-      100% { transform: translateX(-100%); }
+      100% { transform: translateX(-120%); }
     }
 
-    /* Jam Box - Warna Hijau Soft (Clean) */
     .clock-box {
-      background: #e0f7fa; /* Hijau pucat bersih */
-      color: #006064; /* Font kontras gelap */
-      padding: 0 20px;
+      background: #e0f7fa; 
+      color: #006064; 
+      padding: 0 4vw;
       display: flex; align-items: center; 
-      font-family: 'Courier New', monospace;
-      font-weight: 800; font-size: 18px; 
-      border-radius: 30px;
-      min-width: 120px; justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      font-family: monospace;
+      font-weight: 900; 
+      font-size: 4vh; 
+      border-radius: 50px;
+      min-width: 150px; 
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
   </style>
 </head>
@@ -65,7 +69,7 @@
   <div class="footer-bar">
     <div class="ticker-box">
       <div class="ticker-content">
-        EASTON PARK RESIDENCE JATINANGOR
+        EASTON PARK RESIDENCE JATINANGOR — MODERN LIVING — UNIT READY STOCK!
       </div>
     </div>
     <div id="clock" class="clock-box">00:00:00</div>
@@ -73,49 +77,56 @@
 
 <script>
   const v = document.getElementById('video-slot');
-  const VIDEO_URL = "https://github.com/doceprj/tvmedia/raw/refs/heads/main/tvmediaa.mp4";
+  const VIDEO_URL = "https://github.com/doceprj/tvmedia/raw/refs/heads/main/media.mp4";
 
   function playVideo() {
     if (!v.src) v.src = VIDEO_URL;
-    v.play();
+    v.play().catch(e => console.log("Video Play Error:", e));
     if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
   }
 
   function updateClock() {
     const d = new Date();
-    const h = String(d.getHours()).padStart(2, '0');
-    const m = String(d.getMinutes()).padStart(2, '0');
-    const s = String(d.getSeconds()).padStart(2, '0');
-    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+    document.getElementById('clock').textContent = d.toLocaleTimeString('id-ID', { hour12: false });
   }
   setInterval(updateClock, 1000);
   updateClock();
 
-  // --- LOGIKA AUTO REFRESH ANTI-CACHE ---
-  let lastUpdate = "";
-  setInterval(() => {
-    // Menambahkan query string ?t=[random] agar server memberikan data paling baru (Bypass Cache)
-    fetch(window.location.href + "?t=" + new Date().getTime(), { 
+  // --- LOGIKA AUTO REFRESH 30 DETIK (SUPPORT ALL DEVICES) ---
+  let lastIdentifer = "";
+  
+  function checkUpdate() {
+    // Menambahkan cache buster yang unik setiap kali fetch
+    const fetchUrl = window.location.origin + window.location.pathname + "?cb=" + Date.now();
+    
+    fetch(fetchUrl, { 
       method: 'HEAD', 
-      cache: 'no-store' 
+      mode: 'cors',
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
     })
     .then(res => {
-      const etag = res.headers.get("ETag");
-      const lastMod = res.headers.get("Last-Modified");
-      const current = etag || lastMod;
-
-      if (lastUpdate && current && current !== lastUpdate) {
-        console.log("Kodingan baru terdeteksi! Refreshing...");
-        window.location.reload(true);
+      // Mengambil identitas unik file (ETag atau Last-Modified)
+      const current = res.headers.get("ETag") || res.headers.get("Last-Modified");
+      
+      if (lastIdentifer && current && current !== lastIdentifer) {
+        console.log("Update terdeteksi! Memuat ulang...");
+        // Menggunakan replace agar tidak merusak history browser TV
+        window.location.replace(window.location.href);
       }
-      lastUpdate = current;
+      lastIdentifer = current;
     })
-    .catch(e => console.log("Cek update tertunda..."));
-  }, 10000); // Cek setiap 10 detik
+    .catch(err => console.log("Gagal mengecek update (Offline/CORS):", err));
+  }
+
+  // Cek setiap 30 detik
+  setInterval(checkUpdate, 30000);
 
   window.onload = () => { 
     v.src = VIDEO_URL; 
-    v.play().catch(() => {}); 
+    v.play().catch(() => {});
+    // Jalankan cek pertama setelah loading selesai
+    setTimeout(checkUpdate, 2000);
   };
 </script>
 </body>
