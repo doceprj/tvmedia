@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Easton Park - Rounded Lite</title>
+  <title>Easton Park - Rounded Auto Refresh</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #000; overflow: hidden; font-family: sans-serif; }
@@ -14,55 +14,32 @@
       object-fit: cover; z-index: -1;
     }
 
-    /* Container utama dengan padding agar tidak menempel ke pinggir */
     .footer-bar {
-      position: fixed;
-      bottom: 15px; 
-      left: 15px; 
-      right: 15px;
-      height: 50px;
-      display: flex;
-      gap: 10px; /* Jarak antara teks dan jam */
+      position: fixed; bottom: 15px; left: 15px; right: 15px;
+      height: 50px; display: flex; gap: 10px;
     }
 
-    /* Frame Running Text Rounded */
     .ticker-box {
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      background: #000; /* Warna solid */
-      border-radius: 25px; /* Membuat lonjong/rounded */
-      border: 2px solid #7FFFD4;
+      flex: 1; overflow: hidden; display: flex; align-items: center;
+      background: #000; border-radius: 25px; border: 2px solid #77E477;
     }
 
     .ticker-content {
-      white-space: nowrap;
-      color: #fff;
-      font-weight: 800;
-      font-size: 18px;
+      white-space: nowrap; color: #fff; font-weight: 800; font-size: 18px;
       will-change: transform;
       animation: move-text 15s linear infinite;
     }
 
     @keyframes move-text {
-      0% { transform: translateX(100%); }
+      0% { transform: translateX(100vw); }
       100% { transform: translateX(-100%); }
     }
 
-    /* Frame Jam Rounded */
     .clock-box {
-      background: #7FFFD4; 
-      color: #000;
-      padding: 0 25px;
-      display: flex;
-      align-items: center;
-      font-family: monospace;
-      font-weight: bold;
-      font-size: 20px;
-      border-radius: 25px; /* Membuat jam ikutan rounded */
-      min-width: 130px;
-      justify-content: center;
+      background: #77E477; color: #000; padding: 0 25px;
+      display: flex; align-items: center; font-family: monospace;
+      font-weight: bold; font-size: 20px; border-radius: 25px;
+      min-width: 130px; justify-content: center;
     }
   </style>
 </head>
@@ -99,7 +76,28 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  window.onload = () => { v.src = VIDEO_URL; v.play().catch(() => {}); };
+  // --- LOGIKA AUTO REFRESH ---
+  let lastModified = "";
+  setInterval(() => {
+    // Mengecek header file HTML ini sendiri untuk melihat perubahan
+    fetch(window.location.href, { method: 'HEAD', cache: 'no-cache' })
+      .then(res => {
+        const current = res.headers.get("Last-Modified") || res.headers.get("ETag");
+        if (lastModified && current !== lastModified) {
+          console.log("Perubahan terdeteksi, refreshing...");
+          location.reload(true); // Force reload
+        }
+        lastModified = current;
+      })
+      .catch(err => console.log("Cek update gagal:", err));
+  }, 10000); // Cek setiap 10 detik
+
+  window.onload = () => { 
+    v.src = VIDEO_URL; 
+    v.play().catch(() => {
+      console.log("Klik layar untuk memulai video (kebijakan browser)");
+    }); 
+  };
 </script>
 </body>
 </html>
